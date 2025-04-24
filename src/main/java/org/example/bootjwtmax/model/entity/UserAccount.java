@@ -19,4 +19,6 @@ public class UserAccount {
     private String password; // BCrypt
     @CreationTimestamp
     private ZonedDateTime createdAt = ZonedDateTime.now(ZoneOffset.UTC);
+    @Column(nullable = false)
+    private String role;
 }

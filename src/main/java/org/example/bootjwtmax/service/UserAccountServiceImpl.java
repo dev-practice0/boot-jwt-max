@@ -15,6 +15,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserAccountServiceImpl implements UserAccountService {
@@ -33,6 +35,8 @@ public class UserAccountServiceImpl implements UserAccountService {
         userAccount.setPassword(
             passwordEncoder.encode(dto.password())
         );
+//        userAccount.setRole("ROLE_USER"); // 자동으로 생기니까 ROLE 붙이지 마요...
+        userAccount.setRole("USER");
         try {
             userAccountRepository.save(userAccount);
         } catch (DataIntegrityViolationException ex) {
@@ -52,7 +56,8 @@ public class UserAccountServiceImpl implements UserAccountService {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.username(), dto.password())
         );
-        String token = jwtTokenProvider.generateToken(authentication);
+        UserAccount account = userAccountRepository.findByUsername(dto.username()).orElseThrow();
+        String token = jwtTokenProvider.generateToken(authentication, List.of(account.getRole()));
         return new TokenResponseDTO(token);
     }
 }

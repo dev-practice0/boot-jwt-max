@@ -1,11 +1,13 @@
 package org.example.bootjwtmax.auth;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -26,14 +28,19 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String generateToken(Authentication authentication) { // 패러미터 -> 정보...
+    public String generateToken(Authentication authentication, List<String> roles) { // 패러미터 -> 정보...
         String username = authentication.getName();
         Instant now = Instant.now(); // UTC.
         Date expiration = new Date(now.toEpochMilli() + expirationMs); // sql, <util>!!!!
+        Claims claims = Jwts.claims()
+                .subject(username)
+                .add("roles", roles)
+                .build();
         return Jwts.builder()
                 .subject(username) // uuid를 넣어도 된다...
                 .issuedAt(Date.from(now)) // 토큰생성일자
                 .expiration(expiration) // 만료일자
+                .claims(claims)
                 .signWith(getSecretKey(), Jwts.SIG.HS256) // 변환 알고리즘
                 .compact();
     }
@@ -59,8 +66,22 @@ public class JwtTokenProvider {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public List<String> getRoles(String token) {
+        return (List<String>) Jwts.parser()
+                .verifyWith(getSecretKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("roles");
+    }
+
     public Authentication getAuthentication(String token) {
-        UserDetails user = new User(getUsername(token), "", List.of());
+        UserDetails user = new User(getUsername(token), "",
+                getRoles(token).stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .toList());
+        // 문자열 -> 권한 클래스 객체
         return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
     }
 }
