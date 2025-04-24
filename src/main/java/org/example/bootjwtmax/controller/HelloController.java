@@ -38,6 +38,9 @@ public class HelloController {
         return "Hello World";
     }
 
+    @Operation(
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
     @GetMapping("/me")
     public String me(Authentication authentication) {
         return "%s, %s".formatted(authentication.getName(), authentication.getAuthorities());
