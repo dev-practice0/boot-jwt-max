@@ -1,10 +1,12 @@
 package org.example.bootjwtmax.controller;
 
 import org.apache.coyote.BadRequestException;
+import org.example.bootjwtmax.model.dto.TokenResponseDTO;
 import org.example.bootjwtmax.model.dto.UserAccountRequestDTO;
 import org.example.bootjwtmax.service.UserAccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,8 +19,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(UserAccountRequestDTO dto) {
-        return ResponseEntity.ok("");
+    public ResponseEntity<TokenResponseDTO> login(UserAccountRequestDTO dto) throws BadRequestException {
+        TokenResponseDTO tokenResponseDTO = userAccountService.login(dto);
+        return ResponseEntity.ok(tokenResponseDTO);
     }
 
     // join, register
@@ -32,6 +35,11 @@ public class AuthController {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<String> badRequest(BadRequestException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<String> usernameNotFound(UsernameNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
 //    @ExceptionHandler(DataIntegrityViolationException.class)
