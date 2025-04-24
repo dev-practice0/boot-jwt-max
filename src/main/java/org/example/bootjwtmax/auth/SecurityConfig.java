@@ -1,6 +1,7 @@
 package org.example.bootjwtmax.auth;
 
 import lombok.RequiredArgsConstructor;
+import org.example.bootjwtmax.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +26,8 @@ import java.util.Collections;
 public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuth2UserService.OAuth2LoginSuccessHandler successHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,6 +51,11 @@ public class SecurityConfig {
                             .authenticated()
                         .anyRequest().permitAll()
         )
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/login/oauth2")
+                        .userInfoEndpoint(user -> user.userService(customOAuth2UserService))
+                        .successHandler(successHandler)
+                )
                 .authenticationProvider(daoAuthProvider())
                 .addFilterBefore(jwtFilter(),
                         UsernamePasswordAuthenticationFilter.class
