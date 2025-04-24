@@ -42,7 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**")
                             .permitAll()
                         .requestMatchers("/api/admin/**")
-                            .hasAnyRole("ADMIN")
+//                            .hasAnyRole("ADMIN") // 그룹? 개별 권한...
+                            .hasRole("ADMIN")
                         .requestMatchers("/api/**")
                             .authenticated()
                         .anyRequest().permitAll()
