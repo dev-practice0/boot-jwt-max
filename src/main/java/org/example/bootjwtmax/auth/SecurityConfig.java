@@ -52,7 +52,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
         )
                 .oauth2Login(oauth -> oauth
-//                        .loginPage("/login/oauth2")
+//                        .loginPage("/login/oauth2") // 이건 커스텀으로 할 때...
                         .userInfoEndpoint(user -> user.userService(customOAuth2UserService))
                         .successHandler(successHandler)
                 )
