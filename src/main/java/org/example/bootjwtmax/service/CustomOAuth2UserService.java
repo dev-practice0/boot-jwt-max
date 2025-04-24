@@ -30,19 +30,19 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private final DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
     private final KakaoUserRepository kakaoUserRepository;
 
+    // 카카오 로그인 성공 시 사용자 정보 처리
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = delegate.loadUser(userRequest);
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        // 카카오 응답 구조 : kakao_account -> , profile -> nickname
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-        String kakaoId = attributes.get("id").toString();
-        String nickname = profile.get("nickname").toString();
+        OAuth2User oAuth2User = delegate.loadUser(userRequest); // 카카오에서 사용자 정보 받아옴
+        Map<String, Object> attributes = oAuth2User.getAttributes(); // 전체 응답 Map
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account"); // 계정 정보
+        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile"); // 프로필 정보
+        String kakaoId = attributes.get("id").toString(); // 카카오 ID
+        String nickname = profile.get("nickname").toString(); // 닉네임
 
-        String username = "kakao_%s".formatted(kakaoId);
+        String username = "kakao_%s".formatted(kakaoId); // 내부 username 규칙
 
-        // DB 저장 혹은 조회
+        // DB에 이미 있으면 조회, 없으면 신규 저장
         KakaoUser kakaoUser = kakaoUserRepository.findByUsername(username)
                 .orElseGet(() -> {
                     KakaoUser newUser = new KakaoUser();
@@ -51,9 +51,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     return kakaoUserRepository.save(newUser);
                 });
         log.info(kakaoUser.toString());
-        return oAuth2User;
+        return oAuth2User; // 반환
     }
 
+    // 소셜 로그인 성공 후 JWT 토큰 발급 및 응답
     @Service
     @RequiredArgsConstructor
     public static class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
@@ -66,7 +67,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
             String id = oAuth2User.getAttributes().get("id").toString();
             String username = "kakao_%s".formatted(id);
-            String token = jwtTokenProvider.generateToken(new UsernamePasswordAuthenticationToken(username, ""), List.of("KAKAO"));
+            String token = jwtTokenProvider.generateToken(
+                    new UsernamePasswordAuthenticationToken(username, ""),
+                    List.of("KAKAO")
+            );
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, String> result = Map.of("token", token);
             res.setContentType("application/json;charset=UTF-8");
