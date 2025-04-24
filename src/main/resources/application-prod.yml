@@ -19,3 +19,8 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+# JWT
+jwt:
+  # openssl rand -base64 32
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS} # 1시간
