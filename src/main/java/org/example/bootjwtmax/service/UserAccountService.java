@@ -10,4 +10,6 @@ public interface UserAccountService {
     void join(UserAccountRequestDTO dto) throws BadRequestException;
 
     TokenResponseDTO login(UserAccountRequestDTO dto) throws BadRequestException, UsernameNotFoundException;
+
+    void joinAdmin(UserAccountRequestDTO dto) throws BadRequestException;
 }

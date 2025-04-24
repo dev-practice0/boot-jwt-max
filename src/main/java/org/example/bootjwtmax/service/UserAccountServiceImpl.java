@@ -60,4 +60,23 @@ public class UserAccountServiceImpl implements UserAccountService {
         String token = jwtTokenProvider.generateToken(authentication, List.of(account.getRole()));
         return new TokenResponseDTO(token);
     }
+
+    @Override
+    public void joinAdmin(UserAccountRequestDTO dto) throws BadRequestException {
+        if (dto.username().isEmpty() || dto.password().isEmpty()) {
+            throw new BadRequestException("비어 있는 항목이 있습니다");
+        }
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUsername(dto.username());
+        userAccount.setPassword(
+                passwordEncoder.encode(dto.password())
+        );
+        userAccount.setRole("ADMIN");
+        try {
+            userAccountRepository.save(userAccount);
+        } catch (DataIntegrityViolationException ex) {
+            throw new BadRequestException("중복된 Username");
+            // 내가 새로운 거 만들어도 됨
+        }
+    }
 }

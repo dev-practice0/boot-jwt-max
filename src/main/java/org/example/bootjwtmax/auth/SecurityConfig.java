@@ -41,6 +41,8 @@ public class SecurityConfig {
                         // 순서 주의...
                         .requestMatchers("/api/auth/**")
                             .permitAll()
+                        .requestMatchers("/api/admin/**")
+                            .hasAnyRole("ADMIN")
                         .requestMatchers("/api/**")
                             .authenticated()
                         .anyRequest().permitAll()

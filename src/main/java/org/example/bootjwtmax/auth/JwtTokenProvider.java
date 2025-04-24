@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 @Component
+@Log
 public class JwtTokenProvider {
     @Value("${jwt.secret}") // lombok value 아님!
     private String secretKey;
@@ -32,6 +34,7 @@ public class JwtTokenProvider {
         String username = authentication.getName();
         Instant now = Instant.now(); // UTC.
         Date expiration = new Date(now.toEpochMilli() + expirationMs); // sql, <util>!!!!
+        log.info("roles : %s".formatted(roles));
         Claims claims = Jwts.claims()
                 .subject(username)
                 .add("roles", roles)
@@ -79,7 +82,7 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         UserDetails user = new User(getUsername(token), "",
                 getRoles(token).stream()
-                        .map(SimpleGrantedAuthority::new)
+                        .map(role -> new SimpleGrantedAuthority("ROLE_%s".formatted(role))) // ROLE 붙여야 된다... 자동완성 믿지마!!!
                         .toList());
         // 문자열 -> 권한 클래스 객체
         return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

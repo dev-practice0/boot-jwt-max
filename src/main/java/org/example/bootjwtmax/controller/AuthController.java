@@ -32,6 +32,13 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PostMapping("/join2")
+    public ResponseEntity<Void> join2(UserAccountRequestDTO dto) throws BadRequestException {
+        // 어떤 예외를 허용할 거냐?
+        userAccountService.joinAdmin(dto); // 실패하거나 검증상 문제가 생기면... throw...
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<String> badRequest(BadRequestException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
