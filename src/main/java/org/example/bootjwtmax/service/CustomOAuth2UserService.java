@@ -1,5 +1,6 @@
 package org.example.bootjwtmax.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -70,10 +71,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             String id = oAuth2User.getAttributes().get("id").toString();
             String username = "kakao_%s".formatted(id);
             String token = jwtTokenProvider.generateToken(new UsernamePasswordAuthenticationToken(username, ""), List.of("KAKAO"));
-            res.setContentType("application/json");
-            res.getWriter().write("""
-                    {"token" : "%s"}
-                    """.formatted(token));
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, String> result = Map.of("token", token);
+            res.setContentType("application/json;charset=UTF-8");
+            res.getWriter().write(objectMapper.writeValueAsString(result));
         }
     }
 }
