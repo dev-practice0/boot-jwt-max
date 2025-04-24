@@ -31,16 +31,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private final KakaoUserRepository kakaoUserRepository;
 
     @Override
-    @SuppressWarnings("unchecked")
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
         Map<String, Object> attributes = oAuth2User.getAttributes();
-        // 카카오 응답 구조 : kakao_account -> email, profile -> nickname
+        // 카카오 응답 구조 : kakao_account -> , profile -> nickname
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-
-        String kakaoId = attributes.get("kakao_id").toString();
-//        String email = attributes.get("email").toString();
+        String kakaoId = attributes.get("id").toString();
         String nickname = profile.get("nickname").toString();
 
         String username = "kakao_%s".formatted(kakaoId);
@@ -50,7 +47,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .orElseGet(() -> {
                     KakaoUser newUser = new KakaoUser();
                     newUser.setUsername(username);
-//                    newUser.setEmail(email);
                     newUser.setName(nickname);
                     return kakaoUserRepository.save(newUser);
                 });
